@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Driven Table with Vue.js</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+</head>
+<body>
+<div id="app">
+    <div class="container">
+        
+        <div class="form-group">
+            <label for="searchInput">Search:</label>
+            <input type="text" class="form-control" id="searchInput" v-model="searchInput" @input="searchTable">
+        </div>
+        <table class="table table-striped" id="mainTable">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>URL</th>
+                    <th>Forward Page</th>
+                </tr>
+            </thead>
+            <tbody>
+    <template v-for="(item, index) in filteredData">
+        <tr @click="toggleAdditionalInfo(index)">
+            <td>{{ item.description }}</td>
+            <td><a :href="item.url">{{ item.url }}</a></td>
+            <td>{{ item.forward_page }}</td>
+        </tr>
+        <tr :style="{ display: visibleAdditional === index ? 'table-row' : 'none' }">
+            <td :colspan="3" v-html="formatAdditionalInfo(item.additional)"></td>
+        </tr>
+    </template>
+</tbody>
+
+        </table>
+      <hr>
+      <div class="form-group">
+            <label for="jsonInput">JSON Input:</label>
+            <textarea class="form-control" id="jsonInput" v-model="jsonString" rows="5"></textarea>
+        </div>
+        <button class="btn btn-primary" @click="generateTable">Generate Table</button>
+        
+    </div>
+</div>
+
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            jsonString: '',
+            jsonData: [],
+            searchInput: '',
+            filteredData: [],
+            visibleAdditional: -1
+        },
+        methods: {
+            generateTable() {
+                this.jsonData = JSON.parse(this.jsonString);
+                this.filteredData = this.jsonData;
+            },
+            toggleAdditionalInfo(index) {
+                if (this.visibleAdditional === index) {
+                    this.visibleAdditional = -1;
+                } else {
+                    this.visibleAdditional = index;
+                }
+            },
+            formatAdditionalInfo(additional) {
+                let formattedInfo = "";
+                for (const key in additional) {
+                    if (additional.hasOwnProperty(key)) {
+                        formattedInfo += `<strong>${key}:</strong> ${additional[key]}<br>`;
+                    }
+                }
+                return formattedInfo;
+            },
+            searchTable() {
+                const keyword = this.searchInput.trim().toLowerCase();
+                this.filteredData = this.jsonData.filter(item => {
+                    return (
+                        item.description.toLowerCase().includes(keyword) ||
+                        item.url.toLowerCase().includes(keyword) ||
+                        item.forward_page.toLowerCase().includes(keyword)
+                    );
+                });
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
